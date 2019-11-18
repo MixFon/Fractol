@@ -6,7 +6,7 @@
 /*   By: widraugr <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/18 14:34:02 by widraugr          #+#    #+#             */
-/*   Updated: 2019/11/18 18:08:13 by widraugr         ###   ########.fr       */
+/*   Updated: 2019/11/18 19:33:35 by widraugr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,20 @@ void	init(t_frac *frac)
 
 }
 
+int	press_key(int key, int i)
+{
+	ft_printf("key = [%d]\n", key);
+	if (key == K_ESC)
+		sys_err("Normal exit\n");
+	return (0);
+}
+
 int main(int ac, char **av)
 {
 	t_frac frac;
 
 	init(&frac);
+	mlx_key_hook(&frac.window, press_key, 0);
 	mlx_loop(frac.mlx);
 	return (0);
 }

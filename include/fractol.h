@@ -6,7 +6,7 @@
 /*   By: widraugr <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/18 14:40:09 by widraugr          #+#    #+#             */
-/*   Updated: 2019/11/18 18:08:15 by widraugr         ###   ########.fr       */
+/*   Updated: 2019/11/18 19:33:36 by widraugr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # define WIDTH	1000
 # define HIEGHT	500
 # define TITLE	"Fractol"
+# define K_ESC	53
 
 typedef struct	s_frac
 {
