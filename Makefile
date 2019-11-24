@@ -14,11 +14,13 @@ NAME = fractol
 
 NAMEBIN = libft
 
+MLXDIR = minilibx_macos
+
 FILE_C =	main.c
 #-Wall -Wextra -Werror
-FLAGS =  -I libft -I include -I minilibx 
+FLAGS =  -I libft -I include -I $(MLXDIR) 
 
-FMLXLIB = -L minilibx -lmlx -framework OpenGL -framework AppKit
+FMLXLIB = -L $(MLXDIR) -lmlx -framework OpenGL -framework AppKit
 
 FLIB = -L ./libft -lftprintf 
 

@@ -14,7 +14,7 @@
 # define FRACTOL_C
 
 # include "../libft/libft.h"
-# include "mlx.h"
+# include "../minilibx_macos/mlx.h"
 
 # define WIDTH	1000
 # define HIEGHT	500
