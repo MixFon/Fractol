@@ -18,8 +18,13 @@ void	init(t_frac *frac)
 	frac->max_size_adr = WIDTH * 4 * HEIGHT;
 	frac->bits_adr = 4;
 	frac->endian = 0;
-	frac->comp.re = 0;
-	frac->comp.im = 0;
+	frac->max_iter = 10;
+	frac->min.re = -2.0;
+	frac->min.im = -1;
+	frac->max.re = 2.0;
+	frac->zoom = 0.1;
+	frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+		* HEIGHT / WIDTH;
 	frac->mlx = mlx_init();
 	frac->window = mlx_new_window(frac->mlx, WIDTH, HEIGHT, TITLE);
 	frac->img = mlx_new_image(frac->mlx, WIDTH, HEIGHT);
@@ -27,19 +32,89 @@ void	init(t_frac *frac)
 			&frac->size_adr, &frac->endian);
 }
 
-int	press_mouse_key(int key, int x, int y)
+int	press_mouse_key(int key, int x, int y, t_frac *frac)
 {
 	ft_printf("mouse key = [%d]\n", key);
 	ft_printf("x = [%d], y = [%d]\n", x, y);
+	if (key == W_UP)
+	{
+		frac->min.re -= frac->zoom;
+		frac->max.re += frac->zoom;
+		frac->min.im -= frac->zoom / 2;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	else if (key == W_DOWN)
+	{
+		frac->min.re += frac->zoom;
+		frac->max.re -= frac->zoom;
+		frac->min.im += frac->zoom / 2;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	drow_frac(frac);
+	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
 	return (0);
 }
 
 
-int	press_key(int key)
+int	press_key(int key, t_frac *frac)
 {
 	ft_printf("key = [%d]\n", key);
 	if (key == K_ESC)
 		sys_err("Normal exit\n");
+	else if (key == K_DOWN)
+	{
+		frac->min.im -= frac->zoom;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	else if (key == K_UP)
+	{
+		frac->min.im += frac->zoom;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	else if (key == K_LEFT)
+	{
+		frac->min.re -= frac->zoom;
+		frac->max.re -= frac->zoom;
+	}
+	else if (key == K_RIGHT)
+	{
+		frac->min.re += frac->zoom;
+		frac->max.re += frac->zoom;
+	}
+	else if (key == K_C)
+	{
+		frac->min.re -= frac->zoom;
+		frac->max.re += frac->zoom;
+		frac->min.im -= frac->zoom / 2;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	else if (key == K_V)
+	{
+		frac->min.re += frac->zoom;
+		frac->max.re -= frac->zoom;
+		frac->min.im += frac->zoom / 2;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	else if (key == K_R)
+	{
+		frac->min.re = -2.0;
+		frac->min.im = -1.0;
+		frac->max.re = 2.0;
+		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
+			* HEIGHT / WIDTH;
+	}
+	else if (key == K_Z)
+		frac->max_iter += 10;
+	else if (key == K_X)
+		frac->max_iter -= 10;
+	drow_frac(frac);
+	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
 	return (0);
 }
 
@@ -86,6 +161,22 @@ t_compl	get_compl(double re, double im)
 	return (comp);
 }
 
+int	cardioda(t_compl *compl)
+{
+	double	ro;
+	double	teta;
+	double	roc;
+	double r;
+
+	r = pow(compl->re + 1, 2.0) + pow(compl->im, 2.0);
+	ro = pow((compl->re - 0.25), 2.0) + pow(compl->im, 2.0);
+	teta = atan2(compl->im, compl->re - 0.25);
+	roc = 0.5 - 0.5 * cos(teta);
+	if (ro < pow(roc, 2.0) || r < 0.0625)
+		return (1);
+	return (0);
+}
+
 void	drow_frac(t_frac *frac)
 {
 	int		x;
@@ -94,45 +185,43 @@ void	drow_frac(t_frac *frac)
 	int		max_iter;
 	int		color;
 	t_compl comp;
-	t_compl min;
-	t_compl max;
 	t_compl factor;
 	t_compl c;
 	double	t;
 
-	min = get_compl(-2.0, -2.0);
-	max.re = 2.0;
-	max.im = min.im + (max.re - min.re) * HEIGHT / WIDTH;
-
 	factor = get_compl(
-    (max.re - min.re) / (WIDTH - 1),
-    (max.im - min.im) / (HEIGHT - 1));
+    (frac->max.re - frac->min.re) / (WIDTH - 1),
+    (frac->max.im - frac->min.im) / (HEIGHT - 1));
 
-	y = -1;
-	max_iter = 10;
+	y = 0;
+	max_iter = frac->max_iter;
 	while(++y < HEIGHT)
 	{
-		c.im = max.im - y * factor.im;
-		x = -1;
+		c.im = frac->max.im - y * factor.im;
+		x = 0;
 		while(++x < WIDTH)
 		{
-			c.re = min.re + x * factor.re;
+			c.re = frac->min.re + x * factor.re;
 			comp = get_compl(c.re, c.im);
 			iter = -1;
-			while(pow(comp.re, 2.0) + pow(comp.im, 2.0) <= 4
-					&& ++iter < max_iter)
+			if (!cardioda(&comp))
 			{
-				comp = get_compl(
-						pow(comp.re, 2.0) - pow(comp.im, 2.0) + c.re,
-						2.0 * comp.re * comp.im + c.im);
+				while(pow(comp.re, 2.0) + pow(comp.im, 2.0) <= 4
+						&& ++iter < max_iter)
+				{
+					comp = get_compl(
+							pow(comp.re, 2.0) - pow(comp.im, 2.0) + c.re,
+							2.0 * comp.re * comp.im + c.im);
+				}
 			}
-			ft_printf("%d ", iter);
-			if (iter == -1)
-				mlx_pixel_put(frac->mlx,frac->window, x, y, 0xff); 
-			if (iter == 0)
-				mlx_pixel_put(frac->mlx,frac->window, x, y, 0xff00); 
-			if (iter == 50)
-				mlx_pixel_put(frac->mlx,frac->window, x, y, 0xffff); 
+			t = (double)iter / (double)max_iter;
+
+			color = (int)(9 * (1 - t) * pow(t, 3) * 255);
+			color = color << 8;
+			color =color | (int)(15 * pow((1 - t), 2) * pow(t, 2) * 255);
+			color = color << 8;
+			color = color | (int)(8.5 * pow((1 - t), 3) * t * 255);
+			drow_pixel_to_adr(frac, x, y, color); 
 		}
 	}
 }
@@ -144,9 +233,9 @@ int main(int ac, char **av)
 	init(&frac);
 	drow_line(&frac);
 	drow_frac(&frac);
-	//put_img(&frac);
-	mlx_key_hook(frac.window, press_key, 0);
-	mlx_mouse_hook(frac.window, press_mouse_key, 0);
+	put_img(&frac);
+	mlx_key_hook(frac.window, press_key, &frac);
+	mlx_mouse_hook(frac.window, press_mouse_key, &frac);
 	//mlx_loop_hook(frac.mlx,  loop_hook, 0);
 	mlx_loop(frac.mlx);
 	return (0);
