@@ -23,6 +23,7 @@ void	init(t_frac *frac)
 	frac->min.im = -1;
 	frac->max.re = 2.0;
 	frac->zoom = 0.1;
+	frac->count_pth = 10;
 	frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
 		* HEIGHT / WIDTH;
 	frac->mlx = mlx_init();
@@ -52,8 +53,8 @@ int	press_mouse_key(int key, int x, int y, t_frac *frac)
 		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
 			* HEIGHT / WIDTH;
 	}
-	drow_frac(frac);
 	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
+	create_theads(frac);
 	return (0);
 }
 
@@ -113,8 +114,8 @@ int	press_key(int key, t_frac *frac)
 		frac->max_iter += 10;
 	else if (key == K_X)
 		frac->max_iter -= 10;
-	drow_frac(frac);
-	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
+	create_theads(frac);
+	//mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
 	return (0);
 }
 
@@ -177,27 +178,52 @@ int	cardioda(t_compl *compl)
 	return (0);
 }
 
-void	drow_frac(t_frac *frac)
+int		get_rage(t_frac *frac, int *start, int *end)
+{
+	int i;
+	int	delta;
+
+	i = -1;
+	delta = HEIGHT / frac->count_pth;
+	*start = 0;
+	*end = delta;
+	while (++i < frac->count_pth)
+		if (frac->st_pth[i].pth == pthread_self())
+		{
+			if (i == 0)
+				break;
+			*start = (i - 1) * delta;
+			*end = i * delta;
+		}
+	//(*start)--;
+	return (i);
+}
+
+void	*drow_frac(void *arg)//t_frac *frac)
 {
 	int		x;
-	int		y;
+	int		start;
+	int		end;
 	int		iter;
 	int		max_iter;
 	int		color;
+	int		mod;
 	t_compl comp;
 	t_compl factor;
 	t_compl c;
 	double	t;
+	t_frac *frac = arg;
 
 	factor = get_compl(
     (frac->max.re - frac->min.re) / (WIDTH - 1),
     (frac->max.im - frac->min.im) / (HEIGHT - 1));
 
-	y = 0;
+	ft_printf("thid = [%d] i =\n", (int)(pthread_self()));
 	max_iter = frac->max_iter;
-	while(++y < HEIGHT)
+	get_rage(frac, &start, &end);
+	while(++start < end)
 	{
-		c.im = frac->max.im - y * factor.im;
+		c.im = frac->max.im - start * factor.im;
 		x = 0;
 		while(++x < WIDTH)
 		{
@@ -221,22 +247,56 @@ void	drow_frac(t_frac *frac)
 			color =color | (int)(15 * pow((1 - t), 2) * pow(t, 2) * 255);
 			color = color << 8;
 			color = color | (int)(8.5 * pow((1 - t), 3) * t * 255);
-			drow_pixel_to_adr(frac, x, y, color); 
+			drow_pixel_to_adr(frac, x, start, color); 
 		}
 	}
+	return (NULL);
 }
 
-int main(int ac, char **av)
+void	create_theads(t_frac *frac)
+{
+	int i;
+
+	i = -1;
+	while (++i < frac->count_pth)
+	{
+		if ((pthread_create(&(frac->st_pth[i].pth), NULL, drow_frac, frac)))
+			sys_err("Error create thread\n");
+		frac->st_pth[i].number = i;
+		/*
+		if (pthread_join(frac->st_pth[i].pth, NULL))
+			sys_err("Error join thread\n");
+		*/
+	}
+	i = 0;
+	/*
+	if (pthread_join(frac->st_pth[5].pth, NULL))
+		sys_err("Error join thread\n");
+		*/
+	while (++i < frac->count_pth)
+		if (pthread_join(frac->st_pth[i].pth, NULL))
+			sys_err("Error join thread\n");
+	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
+}
+
+int		loop_hook(t_frac *frac)
+{
+	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
+	return (0);
+}
+int		main(int ac, char **av)
 {
 	t_frac frac;
 
 	init(&frac);
-	drow_line(&frac);
-	drow_frac(&frac);
-	put_img(&frac);
+	create_theads(&frac);
+	//drow_line(&frac);
+	//drow_frac(&frac);
+	//sleep(1);
+//	put_img(&frac);
 	mlx_key_hook(frac.window, press_key, &frac);
 	mlx_mouse_hook(frac.window, press_mouse_key, &frac);
-	//mlx_loop_hook(frac.mlx,  loop_hook, 0);
+	//mlx_loop_hook(frac.mlx, loop_hook, &frac);
 	mlx_loop(frac.mlx);
 	return (0);
 }
