@@ -16,10 +16,13 @@
 # include "../libft/libft.h"
 # include "../minilibx_macos/mlx.h"
 # include <math.h>
+# include <pthread.h>
 
-# define WIDTH	1024
-# define HEIGHT	520
+# define WIDTH	1000
+# define HEIGHT	600
 # define TITLE	"Fractol"
+
+# define COUNT_PTH	50
 
 # define K_ESC		53
 # define K_UP		126
@@ -42,6 +45,12 @@ typedef struct	s_compl
 	double		im;
 }				t_compl;
 
+typedef struct		s_thread
+{
+	pthread_t		pth;
+	int				number;
+}					t_thread;
+
 typedef struct	s_frac
 {
 		void	*mlx;
@@ -56,8 +65,12 @@ typedef struct	s_frac
 		double	zoom;
 		t_compl	min;
 		t_compl	max;
+
+		t_thread st_pth[COUNT_PTH];
+		int		count_pth;
 }				t_frac;
 
-void	drow_frac(t_frac *frac);
+void	*drow_frac(void *arg);//t_frac *frac);
+void	create_theads(t_frac *frac);
 
 #endif

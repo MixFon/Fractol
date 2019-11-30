@@ -23,7 +23,7 @@ void	init(t_frac *frac)
 	frac->min.im = -1;
 	frac->max.re = 2.0;
 	frac->zoom = 0.1;
-	frac->count_pth = 10;
+	frac->count_pth = COUNT_PTH;
 	frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
 		* HEIGHT / WIDTH;
 	frac->mlx = mlx_init();
@@ -53,8 +53,8 @@ int	press_mouse_key(int key, int x, int y, t_frac *frac)
 		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
 			* HEIGHT / WIDTH;
 	}
-	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
 	create_theads(frac);
+	mlx_put_image_to_window(frac->mlx, frac->window, frac->img, 0, 0);
 	return (0);
 }
 
@@ -190,10 +190,8 @@ int		get_rage(t_frac *frac, int *start, int *end)
 	while (++i < frac->count_pth)
 		if (frac->st_pth[i].pth == pthread_self())
 		{
-			if (i == 0)
-				break;
-			*start = (i - 1) * delta;
-			*end = i * delta;
+			*end = (i + 1) * delta;
+			*start = i * delta;
 		}
 	//(*start)--;
 	return (i);
@@ -218,9 +216,10 @@ void	*drow_frac(void *arg)//t_frac *frac)
     (frac->max.re - frac->min.re) / (WIDTH - 1),
     (frac->max.im - frac->min.im) / (HEIGHT - 1));
 
-	ft_printf("thid = [%d] i =\n", (int)(pthread_self()));
+	ft_printf("thid = [%d]\n", (int)(pthread_self()));
 	max_iter = frac->max_iter;
 	get_rage(frac, &start, &end);
+	ft_printf("start = [%d] end = {%d}\n", start, end);
 	while(++start < end)
 	{
 		c.im = frac->max.im - start * factor.im;
@@ -270,7 +269,7 @@ void	create_theads(t_frac *frac)
 	}
 	i = 0;
 	/*
-	if (pthread_join(frac->st_pth[5].pth, NULL))
+	if (pthread_join(frac->st_pth[49].pth, NULL))
 		sys_err("Error join thread\n");
 		*/
 	while (++i < frac->count_pth)
@@ -296,7 +295,7 @@ int		main(int ac, char **av)
 //	put_img(&frac);
 	mlx_key_hook(frac.window, press_key, &frac);
 	mlx_mouse_hook(frac.window, press_mouse_key, &frac);
-	//mlx_loop_hook(frac.mlx, loop_hook, &frac);
+	mlx_loop_hook(frac.mlx, loop_hook, &frac);
 	mlx_loop(frac.mlx);
 	return (0);
 }
