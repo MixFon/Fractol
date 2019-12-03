@@ -22,7 +22,7 @@
 # define HEIGHT	600
 # define TITLE	"Fractol"
 
-# define COUNT_PTH	50
+# define COUNT_PTH	10
 
 # define K_ESC		53
 # define K_UP		126
@@ -33,6 +33,10 @@
 # define W_UP	4
 # define W_DOWN	5
 
+# define K_Q	12
+# define K_W	13
+# define K_A	0
+# define K_S	1
 # define K_Z	6
 # define K_X	7
 # define K_C	8
@@ -45,18 +49,20 @@ typedef struct	s_compl
 	double		im;
 }				t_compl;
 
-typedef struct		s_thread
+typedef struct	s_parm
 {
-	pthread_t		pth;
-	int				number;
-}					t_thread;
-
+	int			x;
+	int			y;
+	int			y_end;
+	int			iter;
+}				t_parm;
 typedef struct	s_frac
 {
 		void	*mlx;
 		void	*window;
 		void	*img;
 		char	*data_adr;
+		char	*data_adr_bazil;
 		size_t	max_size_adr;
 		int		size_adr;
 		int		bits_adr;
@@ -65,12 +71,18 @@ typedef struct	s_frac
 		double	zoom;
 		t_compl	min;
 		t_compl	max;
+		t_compl	k;
+		int		julia;
+		int		mandelbrot;
+		double	color;;
+		pthread_t st_pth[COUNT_PTH];
 
-		t_thread st_pth[COUNT_PTH];
-		int		count_pth;
+		void	*img_bazil;
+		int		size_adr_basil;
 }				t_frac;
 
 void	*drow_frac(void *arg);//t_frac *frac);
 void	create_theads(t_frac *frac);
+t_compl	get_compl(double re, double im);
 
 #endif
