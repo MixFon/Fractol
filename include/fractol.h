@@ -22,7 +22,7 @@
 # define HEIGHT	600
 # define TITLE	"Fractol"
 
-# define COUNT_PTH	10
+# define COUNT_PTH	50
 
 # define K_ESC		53
 # define K_UP		126

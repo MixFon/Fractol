@@ -71,25 +71,37 @@ int	press_key(int key, t_frac *frac)
 		sys_err("Normal exit\n");
 	else if (key == K_DOWN)
 	{
+		frac->k.im -= 0.05;
+		/*
 		frac->min.im -= frac->zoom;
 		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
 			* HEIGHT / WIDTH;
+		*/
 	}
 	else if (key == K_UP)
 	{
+		frac->k.im += 0.05;
+		/*
 		frac->min.im += frac->zoom;
 		frac->max.im = frac->min.im + (frac->max.re - frac->min.re)
 			* HEIGHT / WIDTH;
+		*/
 	}
 	else if (key == K_LEFT)
 	{
+		frac->k.re += 0.05;
+		/*
 		frac->min.re -= frac->zoom;
 		frac->max.re -= frac->zoom;
+		*/
 	}
 	else if (key == K_RIGHT)
 	{
+		frac->k.re -= 0.05;
+		/*
 		frac->min.re += frac->zoom;
 		frac->max.re += frac->zoom;
+		*/
 	}
 	else if (key == K_C)
 	{
@@ -227,7 +239,24 @@ void	create_color(t_frac *frac, int x, int y, int iter)
 	drow_pixel_to_adr(frac, x, y, color); 
 }
 
-void	get_iteration_centroida(t_compl *c, int *max_iter, int *iter)
+void	get_iteration_z4(t_compl *c, int *max_iter, int *iter)
+{
+	t_compl comp;
+
+	comp = get_compl(c->re, c->im);
+	*iter = -1;
+	while(pow(comp.re, 2.0) + pow(comp.im, 2.0) <= 4
+			&& ++(*iter) < *max_iter)
+	{
+		comp = get_compl(
+			pow(comp.re, 4.0) - 6 * pow(comp.re, 2.0) * pow(comp.im, 2.0) +
+			pow(comp.im, 4.0) + c->re,
+			4 * pow(comp.re, 3.0) * comp.im - 4 * comp.re * pow(comp.im, 3.0) +
+			c->im);
+	}
+}
+
+void	get_iteration_z3(t_compl *c, int *max_iter, int *iter)
 {
 	t_compl comp;
 
@@ -254,6 +283,24 @@ void	get_iteration_cent_julia(t_compl *c, t_compl *k, int *max_iter, int *iter)
 		comp = get_compl(
 				pow(comp.re, 3.0) - 3 * comp.re * pow(comp.im, 2.0) + k->re,
 				3 * pow(comp.re, 2.0) * comp.im - pow(comp.im, 3.0) + k->im);
+	}
+
+}
+
+void	get_iteration_z4_julia(t_compl *c, t_compl *k, int *max_iter, int *iter)
+{
+	t_compl comp;
+
+	comp = get_compl(c->re, c->im);
+	*iter = -1;
+	while(pow(comp.re, 2.0) + pow(comp.im, 2.0) <= 4
+			&& ++(*iter) < *max_iter)
+	{
+		comp = get_compl(
+			pow(comp.re, 4.0) - 6 * pow(comp.re, 2.0) * pow(comp.im, 2.0) +
+			pow(comp.im, 4.0) + k->re,
+			4 * pow(comp.re, 3.0) * comp.im - 4 * comp.re * pow(comp.im, 3.0) +
+			k->im);
 	}
 
 }
@@ -313,7 +360,7 @@ void	*mandelbrot(void *arg)
 		while(++par.x < WIDTH)
 		{
 			c.re = frac->min.re + par.x * factor.re;
-			get_iteration_centroida(&c, &frac->max_iter, &par.iter);
+			get_iteration_z4(&c, &frac->max_iter, &par.iter);
 			create_color(frac, par.x, par.y, par.iter); 
 		}
 	}
@@ -341,7 +388,7 @@ void	*julia(void *arg)
 		while(++par.x < WIDTH)
 		{
 			c.re = frac->min.re + par.x * factor.re;
-			get_iteration_cent_julia(&c, &frac->k, &frac->max_iter, &par.iter);
+			get_iteration_z4_julia(&c, &frac->k, &frac->max_iter, &par.iter);
 			create_color(frac, par.x, par.y, par.iter); 
 		}
 	}
