@@ -15,5 +15,7 @@ make
 ./fractol Ship
 
 Mandelbrot  - множество Мондельброта
+
 Julia       - множество Жулиа.
+
 Ship        - пылающий корабль.
