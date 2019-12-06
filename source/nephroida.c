@@ -6,7 +6,7 @@
 /*   By: widraugr <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/06 09:25:20 by widraugr          #+#    #+#             */
-/*   Updated: 2019/12/06 09:55:25 by widraugr         ###   ########.fr       */
+/*   Updated: 2019/12/06 10:31:51 by widraugr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ int		nephroida(t_compl *c)
 	double	p;
 
 	a = 0.38;
-	p = (double)(2 / 3);
+	p = (double)2 / 3;
 	ro = pow(pow((c->re), 2.0) + pow(c->im, 2.0), 0.5);
 	teta = atan2(c->im, c->re);
 	if (c->im < 0)
